@@ -1,61 +1,76 @@
 import React, { Component } from 'react';
+import Loader from 'react-loader-spinner';
+import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
+import ImageGallery from '../ImageGallery';
 
 const API_KEY = '21988624-a694c57feb3b9caad270c2fa0';
 const BASE_URL = 'https://pixabay.com/api';
 
 export class ApiService extends Component {
   state = {
-    imageName: '',
-    image: null,
-    loading: false,
-    id: '',
+    images: null,
+    error: null,
+    searchQuery: '',
     page: 1,
     per_page: 12,
+    status: 'idle',
   };
 
   componentDidUpdate(prevProps, prevState) {
+    const { page, per_page } = this.state;
     const prevName = prevProps.imageName;
     const nextName = this.props.imageName;
     if (prevName !== nextName) {
-      console.log('NameImage');
-      console.log('prevProps.imageInfo', prevProps.imageName);
-      console.log('this.props.imageInfo', this.props.imageName);
-
-      this.setState({ loading: true });
+      this.setState({ status: 'pending' });
       fetch(
-        `${BASE_URL}/?q=${nextName}&page=${this.state.page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${this.state.per_page}`,
+        `${BASE_URL}/?q=${nextName}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${per_page}`,
       )
-        .then(response => response.json())
-        .then(image => this.setState({ image }))
-        .finally(() => this.setState({ loading: false }));
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          }
+          return Promise.reject(
+            new Error(`Немає картинки з іменем ${nextName}`),
+          );
+        })
+        .then(images =>
+          this.setState({ images: images.hits, status: 'resolved' }),
+        )
+        .catch(error => this.setState({ error, status: 'rejected' }));
     }
   }
 
-  // componentDidMount(prevProps, prevState) {
-  //   if (prevProps.imageName !== this.props.imageName) {
-  //     console.log('prevProps.imageInfo', prevProps.imageName);
-  //     console.log('this.props.imageInfo', this.props.imageName);
-  //   }
-  //   fetch(
-  //     `${BASE_URL}/?q=${this.state.loadQuery}&page=${this.state.page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${this.state.per_page}`,
-  //   )
-  //     .then(response => response.json())
-  //     .then(id => {
-  //       this.setState({ id });
-  //     });
-  // }
+  handlerClickImage = searchQuery => {
+    return this.setState({ id: searchQuery });
+  };
 
   render() {
-    const { loading, image } = this.state;
-    const { imageName } = this.props.imageName;
+    const { images, error, status } = this.state;
 
-    return (
-      <div>
-        {loading && <div>Грузиться...</div>}
-        {!imageName && <div>Введіть імя картинки</div>}
-        {image && <div>{image.name}</div>}
-      </div>
-    );
+    if (status === 'idle') {
+      return <div>Введіть імя картинки</div>;
+    }
+    if (status === 'pending') {
+      return (
+        <Loader
+          type="Puff"
+          color="#00BFFF"
+          height={100}
+          width={100}
+          timeout={3000}
+        />
+      );
+    }
+    if (status === 'rejected') {
+      return <h1>{error.message}</h1>;
+    }
+    if (status === 'resolved') {
+      return (
+        <>
+          <ImageGallery images={images} onClick={this.handlerClickImage} />
+        </>
+      );
+    }
   }
 }
 
