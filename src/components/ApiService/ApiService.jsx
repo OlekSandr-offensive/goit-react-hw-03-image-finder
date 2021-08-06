@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import Loader from 'react-loader-spinner';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
+import Button from '../Button/Button';
 import ImageGallery from '../ImageGallery';
+import ImageError from '../ImageError';
 
 const API_KEY = '21988624-a694c57feb3b9caad270c2fa0';
 const BASE_URL = 'https://pixabay.com/api';
@@ -33,9 +35,12 @@ export class ApiService extends Component {
             new Error(`Немає картинки з іменем ${nextName}`),
           );
         })
-        .then(images =>
-          this.setState({ images: images.hits, status: 'resolved' }),
-        )
+        .then(data => {
+          this.setState({
+            images: data.hits,
+            status: 'resolved',
+          });
+        })
         .catch(error => this.setState({ error, status: 'rejected' }));
     }
   }
@@ -43,7 +48,12 @@ export class ApiService extends Component {
   handlerClickImage = searchQuery => {
     return this.setState({ id: searchQuery });
   };
-
+  onScrollClick = () => {
+    this.setState(prevState => ({
+      per_page: prevState.per_page + 12,
+    }));
+    console.log(this.state.per_page);
+  };
   render() {
     const { images, error, status } = this.state;
 
@@ -62,12 +72,13 @@ export class ApiService extends Component {
       );
     }
     if (status === 'rejected') {
-      return <h1>{error.message}</h1>;
+      return <ImageError message={error.message} />;
     }
     if (status === 'resolved') {
       return (
         <>
           <ImageGallery images={images} onClick={this.handlerClickImage} />
+          <Button onScrollClick={this.onScrollClick} />
         </>
       );
     }
