@@ -12,7 +12,7 @@ export class ApiService extends Component {
   state = {
     images: null,
     error: null,
-    searchQuery: '',
+    searchQuery: null,
     page: 1,
     per_page: 12,
     status: 'idle',
@@ -31,13 +31,11 @@ export class ApiService extends Component {
           if (response.ok) {
             return response.json();
           }
-          return Promise.reject(
-            new Error(`Немає картинки з іменем ${nextName}`),
-          );
+          return Promise.reject(new Error(`No picture with name ${nextName}`));
         })
-        .then(data => {
+        .then(result => {
           this.setState({
-            images: data.hits,
+            images: [...prevState.images, ...result.hits],
             status: 'resolved',
           });
         })
@@ -45,20 +43,21 @@ export class ApiService extends Component {
     }
   }
 
-  handlerClickImage = searchQuery => {
-    return this.setState({ id: searchQuery });
+  handlerClickImage = id => {
+    return this.setState({ searchQuery: id });
   };
+
   onScrollClick = () => {
-    this.setState(prevState => ({
-      per_page: prevState.per_page + 12,
-    }));
-    console.log(this.state.per_page);
+    this.setState(prevState => {
+      return { page: prevState.page + 1 };
+    });
+    console.log(this.state.page);
   };
   render() {
     const { images, error, status } = this.state;
 
     if (status === 'idle') {
-      return <div>Введіть імя картинки</div>;
+      return <div>Enter a name for the picture</div>;
     }
     if (status === 'pending') {
       return (
@@ -78,7 +77,7 @@ export class ApiService extends Component {
       return (
         <>
           <ImageGallery images={images} onClick={this.handlerClickImage} />
-          <Button onScrollClick={this.onScrollClick} />
+          <Button onClick={this.onScrollClick} />
         </>
       );
     }

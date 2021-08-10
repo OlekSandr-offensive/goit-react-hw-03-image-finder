@@ -1,10 +1,10 @@
 import React from 'react';
 // import PropTypes from 'prop-types';
 
-const Button = ({ onScrollClick }) => {
+const Button = ({ onClick }) => {
   return (
     <>
-      <button className="Button" onClick={onScrollClick}>
+      <button className="Button" onClick={() => onClick()}>
         Load more
       </button>
     </>
