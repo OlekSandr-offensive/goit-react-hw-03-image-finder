@@ -1,6 +1,7 @@
 import React from 'react';
 import errorImage from './Cat-cry.jpg';
 import './ImageError.scss';
+import PropTypes from 'prop-types';
 
 const ImageError = ({ message }) => {
   return (
@@ -9,6 +10,10 @@ const ImageError = ({ message }) => {
       <p>{message}</p>
     </div>
   );
+};
+
+ImageError.propTypes = {
+  message: PropTypes.string.isRequired,
 };
 
 export default ImageError;

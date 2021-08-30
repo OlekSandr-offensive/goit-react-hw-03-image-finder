@@ -4,54 +4,68 @@ import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import Button from '../Button/Button';
 import ImageGallery from '../ImageGallery';
 import ImageError from '../ImageError';
+import Modal from '../Modal';
 
 const API_KEY = '21988624-a694c57feb3b9caad270c2fa0';
 const BASE_URL = 'https://pixabay.com/api';
 
 export class ApiService extends Component {
   state = {
-    images: null,
+    images: [],
     error: null,
-    searchQuery: null,
+    largeImg: null,
     page: 1,
-    per_page: 12,
     status: 'idle',
   };
 
   componentDidUpdate(prevProps, prevState) {
-    const { page, per_page } = this.state;
     const prevName = prevProps.imageName;
     const nextName = this.props.imageName;
     if (prevName !== nextName) {
-      this.setState({ status: 'pending' });
-      fetch(
-        `${BASE_URL}/?q=${nextName}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${per_page}`,
-      )
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          }
-          return Promise.reject(new Error(`No picture with name ${nextName}`));
-        })
-        .then(result => {
-          this.setState({
-            images: [...prevState.images, ...result.hits],
-            status: 'resolved',
-          });
-        })
-        .catch(error => this.setState({ error, status: 'rejected' }));
+      this.setState({ status: 'pending', images: [], page: 1 });
+      this.fetchImage();
     }
   }
 
-  handlerClickImage = id => {
-    return this.setState({ searchQuery: id });
+  handlerClickImage = url => {
+    return this.setState({ largeImg: url });
   };
 
-  onScrollClick = () => {
-    this.setState(prevState => {
-      return { page: prevState.page + 1 };
+  fetchImage = () => {
+    fetch(
+      `${BASE_URL}/?q=${this.props.imageName}&page=${this.state.page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`,
+    )
+      .then(response => {
+        if (response.ok) {
+          return response.json().then(data => data.hits);
+        }
+        return Promise.reject(
+          new Error(`No picture with name ${this.props.imageName}`),
+        );
+      })
+      .then(result => {
+        this.setState(prevState => ({
+          images: [...prevState.images, ...result],
+          page: prevState.page + 1,
+          status: 'resolved',
+        }));
+
+        if (!result.length) {
+          return Promise.reject(
+            new Error(` No picture with name  ${this.props.imageName}`),
+          );
+        } else {
+          this.setState({ error: null });
+        }
+      })
+      .catch(error => this.setState({ error, status: 'rejected' }))
+      .finally(() => this.myScroll());
+  };
+  myScroll = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
     });
-    console.log(this.state.page);
   };
   render() {
     const { images, error, status } = this.state;
@@ -76,8 +90,17 @@ export class ApiService extends Component {
     if (status === 'resolved') {
       return (
         <>
-          <ImageGallery images={images} onClick={this.handlerClickImage} />
-          <Button onClick={this.onScrollClick} />
+          <ImageGallery images={images} largeImg={this.handlerClickImage} />
+          <Button onClick={this.fetchImage} />
+          {this.state.largeImg && (
+            <Modal
+              onClose={() => {
+                this.setState({ largeImg: null });
+              }}
+            >
+              <img src={this.state.largeImg} alt="" />
+            </Modal>
+          )}
         </>
       );
     }

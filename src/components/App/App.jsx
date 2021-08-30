@@ -3,7 +3,6 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.scss';
 import Searchbar from '../Searchbar/Searchbar';
-// import ImageGallery from '../ImageGallery';
 import ApiService from '../ApiService';
 
 export class App extends Component {
@@ -21,7 +20,6 @@ export class App extends Component {
         <Searchbar onSubmit={this.handleSearchFormSubmit} />
         <ApiService imageName={this.state.imageName} />
         <ToastContainer autoClose={3000} />
-        {/* <ImageGallery /> */}
       </div>
     );
   }

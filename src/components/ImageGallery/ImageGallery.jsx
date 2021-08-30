@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import ImageGalleryItem from '../ImageGalleryItem';
+import PropTypes from 'prop-types';
 
 export class ImageGallery extends Component {
   render() {
-    const { images, handlerClickImage } = this.props;
+    const { images, largeImg } = this.props;
 
     return (
       <>
@@ -12,8 +13,10 @@ export class ImageGallery extends Component {
             return (
               <ImageGalleryItem
                 key={image.id}
-                images={image}
-                onClick={handlerClickImage}
+                image={image}
+                largeImg={() => {
+                  largeImg(image.largeImageURL);
+                }}
               />
             );
           })}
@@ -22,5 +25,16 @@ export class ImageGallery extends Component {
     );
   }
 }
+
+ImageGallery.propTypes = {
+  largeImg: PropTypes.func.isRequired,
+  images: PropTypes.arrayOf(
+    PropTypes.shape({
+      // key: PropTypes.number.isRequired,
+      // largeImg: PropTypes.string.isRequired,
+      // image: PropTypes.string.isRequired,
+    }),
+  ),
+};
 
 export default ImageGallery;
