@@ -32,16 +32,16 @@ export class ApiService extends Component {
   };
 
   fetchImage = () => {
+    const { imageName } = this.props;
+    const { page } = this.state;
     fetch(
-      `${BASE_URL}/?q=${this.props.imageName}&page=${this.state.page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`,
+      `${BASE_URL}/?q=${imageName}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`,
     )
       .then(response => {
         if (response.ok) {
           return response.json().then(data => data.hits);
         }
-        return Promise.reject(
-          new Error(`No picture with name ${this.props.imageName}`),
-        );
+        return Promise.reject(new Error(`No picture with name ${imageName}`));
       })
       .then(result => {
         this.setState(prevState => ({
@@ -52,7 +52,7 @@ export class ApiService extends Component {
 
         if (!result.length) {
           return Promise.reject(
-            new Error(` No picture with name  ${this.props.imageName}`),
+            new Error(` No picture with name  ${imageName}`),
           );
         } else {
           this.setState({ error: null });
